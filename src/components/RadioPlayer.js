@@ -20,7 +20,7 @@ const parseSongTitle = (title) => {
   return { artist: artist || 'Artista Desconhecido', title: songTitle || title };
 };
 
-export default function RadioPlayer() {
+export default function RadioPlayer({ onSongChange }) {
   const [sound, setSound] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [nowPlaying, setNowPlaying] = useState(parseSongTitle());
@@ -28,12 +28,10 @@ export default function RadioPlayer() {
 
   const spinValue = useRef(new Animated.Value(0)).current;
 
-  // Função para abrir o Instagram
   const openInstagram = () => {
     Linking.openURL(INSTAGRAM_URL).catch(err => console.error("Não foi possível abrir o link", err));
   };
 
-  // Função para compartilhar a música
   const shareSong = async () => {
     try {
       await Share.share({
@@ -67,7 +65,13 @@ export default function RadioPlayer() {
         const currentSong = parseSongTitle(currentSongText);
         const nextUp = parseSongTitle(nextSongText);
         
-        if (nowPlaying.title !== currentSong.title) setNowPlaying(currentSong);
+        if (nowPlaying.title !== currentSong.title) {
+          if (nowPlaying.title !== 'A melhor do seu rádio') {
+            onSongChange(nowPlaying);
+          }
+          setNowPlaying(currentSong);
+        }
+        
         setNextSong(nextUp);
       } catch (error) {
         console.log("Erro ao buscar metadados:", error);
@@ -80,7 +84,7 @@ export default function RadioPlayer() {
       interval = setInterval(fetchMetadata, 10000);
     }
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, nowPlaying]);
 
   const startSpinning = () => {
     spinValue.setValue(0);
@@ -147,7 +151,7 @@ export default function RadioPlayer() {
         <Text style={styles.songArtist} numberOfLines={1}>{nowPlaying.artist}</Text>
       </View>
 
-      {}
+      {/* Este bloco continua exatamente igual */}
       <View style={styles.socialActionsContainer}>
         <TouchableOpacity style={styles.socialButton} onPress={openInstagram}>
           <Ionicons name="logo-instagram" size={28} color={colors.muted} />
